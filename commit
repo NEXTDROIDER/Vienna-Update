@@ -1,10 +1,10 @@
 
 
 # Добавить все файлы
-git -c safe.directory=/storage/emulated/0/Vienna-Update add .
+git -c safe.directory=. add .
 
 # Сделать коммит
-git -c safe.directory=/storage/emulated/0/Vienna-Update commit -m "Добавил новый файл"
+git -c safe.directory=. commit -m "Добавил новый файл"
 
 # Отправить на GitHub
-git -c safe.directory=/storage/emulated/0/Vienna-Update push origin main
+git -c safe.directory=. push origin  master
