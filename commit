@@ -1,10 +1,51 @@
+#!/bin/bash
 
+REPO_PATH="$HOME/Vienna-Update"
+cd "$REPO_PATH" || { echo "Папка не найдена!"; exit 1; }
 
-# Добавить все файлы
-git -c safe.directory=. add .
+# Определяем текущую ветку
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
-# Сделать коммит
-git -c safe.directory=. commit -m "Добавил новый файл"
+if [ -z "$CURRENT_BRANCH" ]; then
+    git checkout -b master
+    CURRENT_BRANCH="master"
+fi
 
-# Отправить на GitHub
-git -c safe.directory=. push origin  master
+# Настройки Git (если не заданы)
+git config user.name "NEXTDROIDER"
+git config user.email "mineearth2026@gmail.com"
+
+echo "Выберите действие:"
+echo "1) Добавить все файлы и коммитить"
+echo "2) Пуш на GitHub"
+echo "3) Добавить файл и коммитить"
+echo "4) Проверить статус"
+echo "5) Выйти"
+
+read choice
+
+case $choice in
+    1)
+        git add .
+        read -p "Сообщение коммита: " msg
+        git commit -m "$msg"
+        ;;
+    2)
+        git push origin "$CURRENT_BRANCH"
+        ;;
+    3)
+        read -p "Имя файла: " file
+        git add "$file"
+        read -p "Сообщение коммита: " msg
+        git commit -m "$msg"
+        ;;
+    4)
+        git status
+        ;;
+    5)
+        exit 0
+        ;;
+    *)
+        echo "Неверный выбор"
+        ;;
+esac
