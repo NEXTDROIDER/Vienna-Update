@@ -21,4 +21,5 @@ Build from source using Maven:
 export MAVEN_OPTS="-Dhttps.protocols=TLSv1.2"
 bash mvnw clean install
 ```
-or go https://github.com/NEXTDROIDER/Vienna-Update/actions
+or go ![releases](https://github.com/NEXTDROIDER/Vienna-Update/releases)
+
