@@ -43,7 +43,7 @@ jobs:
 
     - name: Build connector-plugin-base first
       run: |
-        cd path/to/connector-plugin-base
+        cd connector-plugin-base
         mvn clean install -B
 
     - name: Build entire project
