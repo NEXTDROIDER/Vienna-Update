@@ -92,7 +92,7 @@ public class InstanceManager
 						return null;
 					}
 
-					boolean survival;
+					Instance.GameMode gameMode;
 					boolean saveEnabled;
 					InventoryType inventoryType;
 					Instance.BuildplateSource buildplateSource;
@@ -101,7 +101,7 @@ public class InstanceManager
 					{
 						case BUILD ->
 						{
-							survival = false;
+							gameMode = Instance.GameMode.CREATIVE;
 							saveEnabled = true;
 							inventoryType = InventoryType.SYNCED;
 							buildplateSource = Instance.BuildplateSource.PLAYER;
@@ -109,7 +109,7 @@ public class InstanceManager
 						}
 						case PLAY ->
 						{
-							survival = true;
+							gameMode = Instance.GameMode.SURVIVAL;
 							saveEnabled = false;
 							inventoryType = InventoryType.DISCARD;
 							buildplateSource = Instance.BuildplateSource.PLAYER;
@@ -117,7 +117,7 @@ public class InstanceManager
 						}
 						case SHARED_BUILD ->
 						{
-							survival = false;
+							gameMode = Instance.GameMode.CREATIVE;
 							saveEnabled = false;
 							inventoryType = InventoryType.DISCARD;
 							buildplateSource = Instance.BuildplateSource.SHARED;
@@ -125,7 +125,7 @@ public class InstanceManager
 						}
 						case SHARED_PLAY ->
 						{
-							survival = true;
+							gameMode = Instance.GameMode.SURVIVAL;
 							saveEnabled = false;
 							inventoryType = InventoryType.DISCARD;
 							buildplateSource = Instance.BuildplateSource.SHARED;
@@ -133,7 +133,7 @@ public class InstanceManager
 						}
 						case ENCOUNTER ->
 						{
-							survival = true;
+							gameMode = Instance.GameMode.ADVENTURE;
 							saveEnabled = false;
 							inventoryType = InventoryType.BACKPACK;
 							buildplateSource = Instance.BuildplateSource.ENCOUNTER;
@@ -155,7 +155,7 @@ public class InstanceManager
 
 					LogManager.getLogger().info("Starting buildplate instance {}", instanceId);
 
-					Instance instance = InstanceManager.this.starter.startInstance(instanceId, startRequest.playerId, startRequest.buildplateId, buildplateSource, survival, startRequest.night, saveEnabled, inventoryType, shutdownTime);
+					Instance instance = InstanceManager.this.starter.startInstance(instanceId, startRequest.playerId, startRequest.buildplateId, buildplateSource, gameMode, startRequest.night, saveEnabled, inventoryType, shutdownTime);
 					if (instance == null)
 					{
 						LogManager.getLogger().error("Error starting buildplate instance {}", instanceId);

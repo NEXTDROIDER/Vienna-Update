@@ -51,15 +51,32 @@ public class Instance
 {
 	private static final long HOST_PLAYER_CONNECT_TIMEOUT = 20000;
 
+	public enum GameMode
+	{
+		SURVIVAL("survival", 0),
+		CREATIVE("creative", 1),
+		ADVENTURE("adventure", 2);
+
+		@NotNull
+		public final String serverPropertiesValue;
+		public final int levelDatGameType;
+
+		GameMode(@NotNull String serverPropertiesValue, int levelDatGameType)
+		{
+			this.serverPropertiesValue = serverPropertiesValue;
+			this.levelDatGameType = levelDatGameType;
+		}
+	}
+
 	@NotNull
-	public static Instance run(@NotNull EventBusClient eventBusClient, @Nullable String playerId, @NotNull String buildplateId, @NotNull BuildplateSource buildplateSource, @NotNull String instanceId, boolean survival, boolean night, boolean saveEnabled, @NotNull InventoryType inventoryType, @Nullable Long shutdownTime, @NotNull String publicAddress, int port, int serverInternalPort, @NotNull String javaCmd, @NotNull File fountainBridgeJar, @NotNull File serverTemplateDir, @NotNull String fabricJarName, @NotNull File connectorPluginJar, @NotNull File baseDir, @NotNull String eventBusConnectionString)
+	public static Instance run(@NotNull EventBusClient eventBusClient, @Nullable String playerId, @NotNull String buildplateId, @NotNull BuildplateSource buildplateSource, @NotNull String instanceId, @NotNull GameMode gameMode, boolean night, boolean saveEnabled, @NotNull InventoryType inventoryType, @Nullable Long shutdownTime, @NotNull String publicAddress, int port, int serverInternalPort, @NotNull String javaCmd, @NotNull File fountainBridgeJar, @NotNull File serverTemplateDir, @NotNull String fabricJarName, @NotNull File connectorPluginJar, @NotNull File baseDir, @NotNull String eventBusConnectionString)
 	{
 		if (playerId == null && buildplateSource == BuildplateSource.PLAYER)
 		{
 			throw new IllegalArgumentException();
 		}
 
-		Instance instance = new Instance(eventBusClient, playerId, buildplateId, buildplateSource, instanceId, survival, night, saveEnabled, inventoryType, shutdownTime, publicAddress, port, serverInternalPort, javaCmd, fountainBridgeJar, serverTemplateDir, fabricJarName, connectorPluginJar, baseDir, eventBusConnectionString);
+		Instance instance = new Instance(eventBusClient, playerId, buildplateId, buildplateSource, instanceId, gameMode, night, saveEnabled, inventoryType, shutdownTime, publicAddress, port, serverInternalPort, javaCmd, fountainBridgeJar, serverTemplateDir, fabricJarName, connectorPluginJar, baseDir, eventBusConnectionString);
 		instance.threadStartedSemaphore.acquireUninterruptibly();
 		new Thread(() ->
 		{
@@ -77,7 +94,7 @@ public class Instance
 	private final String buildplateId;
 	private final BuildplateSource buildplateSource;
 	public final String instanceId;
-	private final boolean survival;
+	private final GameMode gameMode;
 	private final boolean night;
 	private final boolean saveEnabled;
 	private final InventoryType inventoryType;
@@ -116,7 +133,7 @@ public class Instance
 
 	private volatile boolean hostPlayerConnected = false;
 
-	private Instance(@NotNull EventBusClient eventBusClient, @Nullable String playerId, @NotNull String buildplateId, @NotNull BuildplateSource buildplateSource, @NotNull String instanceId, boolean survival, boolean night, boolean saveEnabled, @NotNull InventoryType inventoryType, @Nullable Long shutdownTime, @NotNull String publicAddress, int port, int serverInternalPort, @NotNull String javaCmd, @NotNull File fountainBridgeJar, @NotNull File serverTemplateDir, @NotNull String fabricJarName, @NotNull File connectorPluginJar, @NotNull File baseDir, @NotNull String eventBusConnectionString)
+	private Instance(@NotNull EventBusClient eventBusClient, @Nullable String playerId, @NotNull String buildplateId, @NotNull BuildplateSource buildplateSource, @NotNull String instanceId, @NotNull GameMode gameMode, boolean night, boolean saveEnabled, @NotNull InventoryType inventoryType, @Nullable Long shutdownTime, @NotNull String publicAddress, int port, int serverInternalPort, @NotNull String javaCmd, @NotNull File fountainBridgeJar, @NotNull File serverTemplateDir, @NotNull String fabricJarName, @NotNull File connectorPluginJar, @NotNull File baseDir, @NotNull String eventBusConnectionString)
 	{
 		this.eventBusClient = eventBusClient;
 
@@ -124,7 +141,7 @@ public class Instance
 		this.buildplateId = buildplateId;
 		this.buildplateSource = buildplateSource;
 		this.instanceId = instanceId;
-		this.survival = survival;
+		this.gameMode = gameMode;
 		this.night = night;
 		this.saveEnabled = saveEnabled;
 		this.inventoryType = inventoryType;
@@ -162,15 +179,15 @@ public class Instance
 			{
 				case PLAYER ->
 				{
-					this.logger.info("Starting for player {} buildplate {} (survival = {}, saveEnabled = {}, inventoryType = {})", this.playerId, this.buildplateId, this.survival, this.saveEnabled, this.inventoryType);
+					this.logger.info("Starting for player {} buildplate {} (gameMode = {}, saveEnabled = {}, inventoryType = {})", this.playerId, this.buildplateId, this.gameMode, this.saveEnabled, this.inventoryType);
 				}
 				case SHARED ->
 				{
-					this.logger.info("Starting for shared buildplate {} (player = {}, survival = {}, saveEnabled = {}, inventoryType = {})", this.buildplateId, this.playerId, this.survival, this.saveEnabled, this.inventoryType);
+					this.logger.info("Starting for shared buildplate {} (player = {}, gameMode = {}, saveEnabled = {}, inventoryType = {})", this.buildplateId, this.playerId, this.gameMode, this.saveEnabled, this.inventoryType);
 				}
 				case ENCOUNTER ->
 				{
-					this.logger.info("Starting for encounter buildplate {} (player = {}, survival = {}, saveEnabled = {}, inventoryType = {})", this.buildplateId, this.playerId, this.survival, this.saveEnabled, this.inventoryType);
+					this.logger.info("Starting for encounter buildplate {} (player = {}, gameMode = {}, saveEnabled = {}, inventoryType = {})", this.buildplateId, this.playerId, this.gameMode, this.saveEnabled, this.inventoryType);
 				}
 			}
 			this.logger.info("Using port {} internal port {}", this.port, this.serverInternalPort);
@@ -655,7 +672,7 @@ public class Instance
 				.append("sync-chunk-writes=false\n")
 				.append("spawn-protection=0\n")
 				.append("server-port=%d\n".formatted(this.serverInternalPort))
-				.append("gamemode=%s\n".formatted(this.survival ? "survival" : "creative"))
+				.append("gamemode=%s\n".formatted(this.gameMode.serverPropertiesValue))
 				.append("vienna-event-bus-address=%s\n".formatted(this.eventBusAddress))
 				.append("vienna-event-bus-queue-name=%s\n".formatted(this.eventBusQueueName))
 				.toString();
@@ -680,7 +697,7 @@ public class Instance
 			return null;
 		}
 
-		CompoundTag levelDatTag = createLevelDat(this.survival, this.night);
+		CompoundTag levelDatTag = createLevelDat(this.gameMode, this.night);
 		NBTIO.writeFile(levelDatTag, new File(worldDir, "level.dat"));
 
 		try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serverData); ZipInputStream zipInputStream = new ZipInputStream(byteArrayInputStream))
@@ -774,10 +791,10 @@ public class Instance
 	}
 
 	@NotNull
-	private static CompoundTag createLevelDat(boolean survival, boolean night)
+	private static CompoundTag createLevelDat(@NotNull GameMode gameMode, boolean night)
 	{
 		CompoundTag dataTag = new NbtBuilder.Compound()
-				.put("GameType", survival ? 0 : 1)
+				.put("GameType", gameMode.levelDatGameType)
 				.put("Difficulty", 1)
 				.put("DayTime", !night ? 6000 : 18000)
 				.put("GameRules", new NbtBuilder.Compound()
